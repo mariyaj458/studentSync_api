@@ -3,6 +3,8 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 var session = require("express-session");
 var FileStore = require("session-file-store")(session);
+var passport = require("passport");
+var authenticate = require("./authenticate");
 require("dotenv").config();
 
 const userRoutes = require("./routes/userRoutes");
@@ -27,6 +29,8 @@ app.use(
   })
 );
 
+app.use(passport.initialize());
+app.use(passport.session());
 app.use("/api/users", userRoutes);
 
 const authMiddleware = (req, res, next) => {
@@ -38,10 +42,6 @@ const authMiddleware = (req, res, next) => {
   } else {
     if (req.session.user === "authenticated") {
       next();
-    } else {
-      return res
-        .status(403)
-        .json({ message: "Unauthorized! No credentials provided." });
     }
   }
 };
