@@ -1,9 +1,9 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
-const cookieParser = require("cookie-parser");
-var session = required('cookies-parser');
-var FileStore = required('session-file-store')(session);
+// const cookieParser = require("cookie-parser");
+var session = require('express-session');
+var FileStore = require('session-file-store')(session);
 require("dotenv").config();
 
 const studentRoutes = require("./routes/studentRoutes");
@@ -23,12 +23,13 @@ app.use(session({
     secret:'12345-67890-09876-54321',
     saveUninitialized:false,
     resave:false,
-    store:new FileStore()
+    store:new FileStore(),
+    cookie: { maxAge: 60000 }
 }));
 
 const authMiddleware = (req, res, next) => {
-  console.log("signedCookies=====>", req.signedCookies);
-  if (!req.signedCookies.user) {
+  console.log("signedCookies=====>", req.session);
+  if (!req.session.user) {
     const authHeader = req.headers.authorization;
 
     if (!authHeader) {
@@ -47,8 +48,8 @@ const authMiddleware = (req, res, next) => {
 
     console.log(`Username: ${username}, Password: ${password}`);
 
-    if (username === "admin" && password === "Test@123") {
-        res.cookie('user','admin',{signed:true})
+    if (username === "appu" && password === "Test@456") {
+        req.session.user = 'admin';
       next();
     } else {
       return res
@@ -56,7 +57,7 @@ const authMiddleware = (req, res, next) => {
         .json({ message: "Unauthorized! Incorrect credentials." });
     }
   } else {
-    if(res.signedCookies.user === 'admin') {
+    if(req.session.user === 'admin') {
         next();
     } else {
         return res
