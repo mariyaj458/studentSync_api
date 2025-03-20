@@ -47,7 +47,7 @@ router.get("/:id", async (req, res, next) => {
 
     res.status(200).json(student);
   } catch (error) {
-    next(error); // Pass unexpected errors to the errorHandler
+    next(error);
   }
 });
 // ** Add Student ** //
@@ -91,7 +91,7 @@ router.put("/update-by-email", async (req, res) => {
     res.status(200).json(updateStudent);
   } catch (error) {
     console.log("lllllllllllllll");
-    
+
     res.status(500).json({ message: error.message });
   }
 });
@@ -132,8 +132,6 @@ router.put("/:id", async (req, res, next) => {
     // res.status(500).json({message:error.message});
   }
 });
-
-
 
 // ** delete Student ** //
 
