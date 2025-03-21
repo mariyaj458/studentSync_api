@@ -2,11 +2,11 @@ const express = require("express");
 const Attendance = require("../models/attendance");
 const Student = require("../models/student");
 const mongoose = require("mongoose");
-const { error } = require("winston");
+const authenticate = require("../authenticate");
 
 const router = express.Router();
 
-router.post("/", async (req, res) => {
+router.post("/", authenticate.verifyUser, async (req, res) => {
   try {
     // const markAttendance = new Attendance(req.body);
     const { studentId, date, status } = req.body;
@@ -67,7 +67,7 @@ router.get("/date/:date", async (req, res) => {
 
 // ** update Attendance ** //
 
-router.put("/:id", async (req, res) => {
+router.put("/:id", authenticate.verifyUser, async (req, res) => {
   try {
     const { status } = req.body;
 
@@ -97,7 +97,7 @@ router.put("/:id", async (req, res) => {
 
 // **  delete attendance by id ** //
 
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", authenticate.verifyUser, async (req, res) => {
   try {
     const deletedAttendance = await Attendance.findByIdAndDelete(req.params.id);
     if (!deletedAttendance) {

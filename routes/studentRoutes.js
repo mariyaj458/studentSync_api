@@ -2,7 +2,7 @@ const express = require("express");
 const Student = require("../models/student");
 const mongoose = require("mongoose");
 const logger = require("../middleware/logger");
-const { error } = require("winston");
+const authenticate = require("../authenticate");
 
 const router = express.Router();
 
@@ -64,7 +64,7 @@ router.get("/:id", async (req, res, next) => {
 
 // ** Add Multiple Students At a time ** //
 
-router.post("/", async (req, res, next) => {
+router.post("/", authenticate.verifyUser, async (req, res, next) => {
   try {
     const students = await Student.insertMany(req.body);
     res.status(201).json(students);
@@ -76,7 +76,7 @@ router.post("/", async (req, res, next) => {
 
 // ** udpdate Student By Filter ** //
 
-router.put("/update-by-email", async (req, res) => {
+router.put("/update-by-email", authenticate.verifyUser, async (req, res) => {
   try {
     const { email, updateData } = req.body;
 
@@ -98,7 +98,7 @@ router.put("/update-by-email", async (req, res) => {
 
 // ** update student ** //
 
-router.put("/:id", async (req, res, next) => {
+router.put("/:id", authenticate.verifyUser, async (req, res, next) => {
   try {
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
       const error = new Error("Invalid Student ID format");
@@ -135,7 +135,7 @@ router.put("/:id", async (req, res, next) => {
 
 // ** delete Student ** //
 
-router.delete("/:id", async (req, res, next) => {
+router.delete("/:id", authenticate.verifyUser, async (req, res, next) => {
   try {
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
       const error = new Error("Invalid Student ID format");
@@ -167,7 +167,7 @@ router.delete("/:id", async (req, res, next) => {
 
 // ** Delete All Students ** //
 
-router.delete("/", async (req, res) => {
+router.delete("/", authenticate.verifyUser, async (req, res) => {
   try {
     const result = await Student.deleteMany({});
     const error = new Error("All students deleted successfully");

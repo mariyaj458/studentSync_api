@@ -1,49 +1,45 @@
-var express = require("express");
-const bodyParser = require("body-parser");
-var User = require("../models/user");
-var passport = require("passport");
+const express = require("express");
+const User = require("../models/user");
+const passport = require("passport");
+const authenticate = require("../authenticate");
 
-var router = express.Router();
-router.use(bodyParser.json());
+const router = express.Router();
 
-router.post("/signup", (req, res, next) => {
+router.post("/signup", (req, res) => {
   console.log("Received Signup Request:", req.body);
+
   User.register(
     new User({ username: req.body.username }),
     req.body.password,
     (err, user) => {
       if (err) {
-        res.statusCode = 500;
-        res.setHeader("Content-Type", "application/json");
-        res.json({ err: err });
-      } else {
-        passport.authenticate("local")(req, res, () => {
-          res.statusCode = 200;
-          res.setHeader("Content-Type", "application/json");
-          res.json({ success: true, status: "Registeration Sucessful" });
-        });
+        return res.status(500).json({ err });
       }
+
+      res
+        .status(200)
+        .json({ success: true, status: "Registration Successful" });
     }
   );
 });
 
-router.post("/login", passport.authenticate("local"), (req, res) => {
-  res.statusCode = 200;
-  res.setHeader("Content-Type", "application/json");
-  res.json({ success: true, status: "You are successfully loggedin " });
+router.post("/login", (req, res, next) => {
+  passport.authenticate("local", { session: false }, (err, user, info) => {
+    if (err) return next(err);
+    if (!user) {
+      return res.status(401).json({ message: "Invalid username or password" });
+    }
+
+    // No session, just return the token
+    const token = authenticate.getToken({ _id: user._id });
+    res
+      .status(200)
+      .json({ success: true, token, status: "You are successfully logged in" });
+  })(req, res, next);
 });
 
-router.get("/logout", (req, res, next) => {
-  if (req.session) {
-    req.session.destroy();
-    res.clearCookie("session-id");
-    res.status(200).send("Logged out successfully");
-    // res.redirect("/login");
-  } else {
-    var err = new Error("You are not logged in!");
-    err.status = 403;
-    next(err);
-  }
+router.get("/logout", (req, res) => {
+  res.status(200).json({ message: "Logged out successfully" });
 });
 
 module.exports = router;
