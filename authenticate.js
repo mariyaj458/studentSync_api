@@ -1,9 +1,16 @@
 const passport = require("passport");
+const LocalStrategy = require("passport-local").Strategy;
 const JwtStrategy = require("passport-jwt").Strategy;
 const ExtractJwt = require("passport-jwt").ExtractJwt;
 const jwt = require("jsonwebtoken");
 const config = require("./config");
 const User = require("./models/user");
+
+
+passport.use(new LocalStrategy(User.authenticate()));
+
+passport.serializeUser(User.serializeUser());
+passport.deserializeUser(User.deserializeUser());
 
 var opts = {};
 opts.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();
@@ -24,6 +31,9 @@ passport.use(
   })
 );
 
-exports.verifyUser = (req, res, next) => {
-  passport.authenticate("jwt", { session: false })(req, res, next);
+
+exports.getToken = function (user) {
+  return jwt.sign(user, config.secretKey, { expiresIn: "1h" });
 };
+
+exports.verifyUser = passport.authenticate("jwt", { session: false });
