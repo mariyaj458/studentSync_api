@@ -10,7 +10,7 @@ const router = express.Router();
 
 router.get("/", async (req, res, next) => {
   try {
-    const students = await Student.find(); // Fetch all student documents
+    const students = await Student.find().populate("course.instructor");
     res.status(200).json(students);
   } catch (error) {
     next(error);
@@ -33,7 +33,9 @@ router.get("/:id", async (req, res, next) => {
       return res.status(400).json({ message: error.message });
     }
 
-    const student = await Student.findById(req.params.id);
+    const student = await Student.findById(req.params.id).populate(
+      "course.instructor"
+    );
     if (!student) {
       const error = new Error("Student not found");
       error.status = 404;
@@ -52,27 +54,28 @@ router.get("/:id", async (req, res, next) => {
 });
 // ** Add Student ** //
 
-// router.post("/",async(req,res)=> {
-//     try {
-//         const newStudents = new Student(req.body); // Create a new Student document
-//         await newStudents.save();  // Save the student to the database
-//         res.status(201).json(newStudents); //Send the created student as a response
-//     } catch (error) {
-//         res.status(400).json({message:error.message});
-//     }
-// });
+router.post("/", authenticate.verifyUser, async (req, res) => {
+  try {
+    // req.body.course = req.Course._id;
+    const newStudents = new Student(req.body); // Create a new Student document
+    await newStudents.save(); // Save the student to the database
+    res.status(201).json(newStudents); //Send the created student as a response
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
 
 // ** Add Multiple Students At a time ** //
 
-router.post("/", authenticate.verifyUser, async (req, res, next) => {
-  try {
-    const students = await Student.insertMany(req.body);
-    res.status(201).json(students);
-  } catch (error) {
-    // res.status(400).json({message:error.message});
-    next(error);
-  }
-});
+// router.post("/", authenticate.verifyUser, async (req, res, next) => {
+//   try {
+//     const students = await Student.insertMany(req.body);
+//     res.status(201).json(students);
+//   } catch (error) {
+//     // res.status(400).json({message:error.message});
+//     next(error);
+//   }
+// });
 
 // ** udpdate Student By Filter ** //
 
@@ -90,8 +93,6 @@ router.put("/update-by-email", authenticate.verifyUser, async (req, res) => {
     }
     res.status(200).json(updateStudent);
   } catch (error) {
-    console.log("lllllllllllllll");
-
     res.status(500).json({ message: error.message });
   }
 });
@@ -183,6 +184,30 @@ router.delete("/", authenticate.verifyUser, async (req, res) => {
     res.status(200).json({ message: "All Studenets Deleted Successfully" });
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+});
+
+router.post("/:id/course", authenticate.verifyUser, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user._id;
+
+    const student = await Student.findById(id);
+    if (!student) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+    const newCourse = {
+      course_name: req.body.course_name,
+      duration: req.body.duration,
+      instructor: userId,
+      details: req.body.details,
+    };
+
+    student.course.push(newCourse);
+    await student.save();
+    res.status(200).json(student);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
   }
 });
 
