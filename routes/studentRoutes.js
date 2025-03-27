@@ -6,6 +6,10 @@ const authenticate = require("../authenticate");
 
 const router = express.Router();
 
+router.get("/", (req, res) => {
+  res.send("Welcome to the Student API");
+});
+
 // ** GET All student details ** //
 
 router.get("/", async (req, res, next) => {
