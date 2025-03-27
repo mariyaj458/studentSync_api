@@ -10,7 +10,13 @@ const attendanceRoute = require("./routes/attendanceRoutes");
 const errorHandler = require("./middleware/errorHandler");
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+
+app.all("*", (req, res, next) => {
+  if (req.secure || !app.get("secPort")) {
+    return next();
+  }
+  res.redirect(307, `https://${req.hostname}:${app.get("secPort")}${req.url}`);
+});
 
 // Middleware
 app.use(express.json());
@@ -32,6 +38,4 @@ mongoose.connection.once("open", () =>
   console.log("MongoDB connected successfully")
 );
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+module.exports = app;
