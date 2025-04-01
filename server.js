@@ -7,6 +7,7 @@ require("dotenv").config();
 const userRoutes = require("./routes/userRoutes");
 const studentRoutes = require("./routes/studentRoutes");
 const attendanceRoute = require("./routes/attendanceRoutes");
+const uploadRoute = require("./routes/uploadRouter");
 const errorHandler = require("./middleware/errorHandler");
 
 const app = express();
@@ -21,6 +22,7 @@ app.use(passport.initialize());
 app.use("/api/users", userRoutes);
 app.use("/api/students", studentRoutes);
 app.use("/api/attendance", attendanceRoute);
+app.use("/api/imageUpload",uploadRoute)
 app.use(errorHandler);
 
 // MongoDB Connection
